@@ -4,7 +4,7 @@ resource "aws_s3_bucket" "datalake" {
   tags = {
     IES     = "IGTI"
     CURSO   = "EDC"
-    PROJETO = "RAIS_"
+    PROJETO = "RAIS"
   }
 
 }
