@@ -1,10 +1,10 @@
 resource "aws_s3_bucket" "datalake" {
-    bucket = "dtlk-diego-igti-rais-tf"
+  bucket = "${var.base_bucket_name}"
 
-    tags = {
-        IES = "IGTI"
-        CURSO = "EDC"
-        PROJETO = "RAIS"
-    }
+  tags = {
+    IES     = "IGTI"
+    CURSO   = "EDC"
+    PROJETO = "RAIS"
+  }
 
 }
