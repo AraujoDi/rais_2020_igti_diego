@@ -7,4 +7,9 @@ resource "aws_s3_bucket" "datalake" {
         PROJETO = "RAIS"
     }
 
+    resource "null_resource" "fn_example_script" {
+    triggers = {
+    always_run = timestamp()
+  }
+
 }
