@@ -120,7 +120,7 @@ def pipeline_rais():
                             's3://dtlk-diego-igti-rais-tf/emr-code/pyspark/01_parquet_spark_insert.py'
                         ]
                 }
-            }]
+            }],
         )
         return cluster_id["JobFlowId"]
 
