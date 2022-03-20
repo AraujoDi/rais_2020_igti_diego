@@ -120,7 +120,7 @@ def pipeline_rais():
                             's3://dtlk-diego-igti-rais-tf/emr-code/pyspark/01_parquet_spark_insert.py'
                         ]
                 }
-            }]
+            }],
         )
         return cluster_id["JobFlowId"]
 
@@ -151,7 +151,7 @@ def pipeline_rais():
             )
 
 
-    # Encadeando a pipeline
+    # Encadeando a pipeline rais
     cluid = emr_process_rais_data()
     res_emr = wait_emr_step(cluid)
     res_ter = terminate_emr_cluster(res_emr, cluid)
