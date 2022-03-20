@@ -1,4 +1,3 @@
-
 /* resource "aws_s3_bucket" "datalake" {
   bucket = "dtlk-diego-igti-rais-tf"
 

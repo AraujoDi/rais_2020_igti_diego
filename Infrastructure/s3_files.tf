@@ -1,5 +1,5 @@
 resource "aws_s3_object" "codigo_spark" {
-  bucket = aws_s3_bucket.datalake.id
+  bucket = "dtlk-diego-igti-rais-tf"
   key    = "emr-code/pyspark/emr_job_spark.py"
   acl    = "private"
   source = "../etl/emr_job_spark.py"
