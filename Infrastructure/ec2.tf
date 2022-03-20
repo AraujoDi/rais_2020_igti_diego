@@ -22,19 +22,20 @@ resource "aws_instance" "airflow" {
   instance_type               = "t3.medium"
   key_name                    = var.key_pair_name
   associate_public_ip_address = true
-  security_groups             = [aws_security_group.airflow_sg.id]
+  security_groups             = [aws_security_group.sg_airflow.id]
   subnet_id                   = var.airflow_subnet_id
 
 
   tags = {
     IES   = "IGTI",
-    CURSO = "EDC"
+    CURSO = "EDC",
+    PROJETO = "RAIS"
   }
 }
 
 # Security group to allow acces to instance
-resource "aws_security_group" "airflow_sg" {
-  name        = "airflow_sg"
+resource "aws_security_group" "sg_airflow" {
+  name        = "sg_airflow"
   description = "Allow traffic on port 8080 for airflow"
   vpc_id      = var.vpc_id
 

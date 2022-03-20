@@ -1,5 +1,4 @@
-
-resource "aws_s3_bucket" "datalake" {
+/* resource "aws_s3_bucket" "datalake" {
   bucket = "dtlk-diego-igti-rais-tf"
 
   tags = {
@@ -7,8 +6,4 @@ resource "aws_s3_bucket" "datalake" {
     CURSO = "EDC"
     PROJETO = "RAIS"
   }
-}
-
-resource "aws_s3_bucket_acl" "datalake" {
-  bucket = aws_s3_bucket.datalake.id
-}
+} */
