@@ -7,16 +7,16 @@ aws_access_key_id = Variable.get("aws_access_key_id")
 aws_secret_access_key = Variable.get("aws_secret_access_key")
 
 client = boto3.client("emr", region_name="us-east-1",
-                    aws_access_key_id=aws_access_key_id,
-                    aws_secret_access_key=aws_secret_access_key)
+                      aws_access_key_id=aws_access_key_id,
+                      aws_secret_access_key=aws_secret_access_key)
 
 s3client = boto3.client("s3", aws_access_key_id=aws_access_key_id,
-                          aws_secret_access_key=aws_secret_access_key)
+                        aws_secret_access_key=aws_secret_access_key)
 
 
 # Usando a novíssima Taskflow API
 default_args = {
-    'owner': 'Diego Araújo',
+    'owner': 'Diego Araujo',
     "depends_on_past": False,
     "start_date": days_ago(2),
     "email": ["airflow@airflow.com"],
@@ -24,16 +24,17 @@ default_args = {
     "email_on_retry": False
 }
 
-@dag(default_args=default_args, schedule_interval=None, catchup=False, tags=["emr", "aws", "enem"], description="Pipeline para processamento de dados rais 2020")
+
+@dag(default_args=default_args, schedule_interval=None, catchup=False, tags=["emr", "aws", "rais"], description="Pipeline para processamento de dados da RAIS 2020")
 def pipeline_rais():
     """
-    Pipeline para processamento de dados do rais 2020.
+    Pipeline para processamento de dados da RAIS 2020.
     """
 
     @task
     def emr_process_rais_data():
         cluster_id = client.run_job_flow(
-            Name='EMR-Diego-IGTI',
+            Name='EMR-diego-IGTI',
             ServiceRole='EMR_DefaultRole',
             JobFlowRole='EMR_EC2_DefaultRole',
             VisibleToAllUsers=True,
@@ -59,18 +60,10 @@ def pipeline_rais():
                 'Ec2KeyName': 'diego-igti-key-pair',
                 'KeepJobFlowAliveWhenNoSteps': True,
                 'TerminationProtected': False,
-                'Ec2SubnetId': 'subnet-08794332fbd6959c1'
+                'Ec2SubnetId': 'subnet-023bffa8b7a996029'
             },
 
-            Applications=[
-                    {'Name': 'Spark'},
-                    {'Name': 'Hive'},
-                    {'Name': 'Pig'},
-                    {'Name': 'Hue'},
-                    {'Name': 'JupyterHub'},
-                    {'Name': 'JupyterEnterpriseGateway'},
-                    {'Name': 'Livy'},
-                ],
+            Applications=[{'Name': 'Spark'}],
 
             Configurations=[{
                 "Classification": "spark-env",
@@ -88,7 +81,7 @@ def pipeline_rais():
                     "Properties": {
                         "hive.metastore.client.factory.class": "com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory"
                     }
-                },
+            },
                 {
                     "Classification": "spark-defaults",
                     "Properties": {
@@ -97,33 +90,32 @@ def pipeline_rais():
                         "spark.sql.adaptive.enabled": "true",
                         "spark.serializer": "org.apache.spark.serializer.KryoSerializer"
                     }
-                },
+            },
                 {
                     "Classification": "spark",
                     "Properties": {
                         "maximizeResourceAllocation": "true"
                     }
-                }
+            }
             ],
 
             Steps=[{
-                'Name': 'Primeiro processamento do RAIS',
+                'Name': 'Primeiro processamento da RAIS',
                 'ActionOnFailure': 'TERMINATE_CLUSTER',
                 'HadoopJarStep': {
                     'Jar': 'command-runner.jar',
                     'Args': ['spark-submit',
-                            '--packages', 'io.delta:delta-core_2.12:1.0.0', 
-                            '--conf', 'spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension', 
-                            '--conf', 'spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog', 
-                            '--master', 'yarn',
-                            '--deploy-mode', 'cluster',
-                            's3://dtlk-diego-igti-rais-tf/emr-code/pyspark/01_parquet_spark_insert.py'
-                        ]
+                             '--packages', 'io.delta:delta-core_2.12:1.0.0',
+                             '--conf', 'spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension',
+                             '--conf', 'spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog',
+                             '--master', 'yarn',
+                             '--deploy-mode', 'cluster',
+                             's3://dtlk-diego-igti-rais-tf/emr-code/pyspark/emr_job_spark.py'
+                             ]
                 }
             }],
         )
         return cluster_id["JobFlowId"]
-
 
     @task
     def wait_emr_step(cid: str):
@@ -143,6 +135,43 @@ def pipeline_rais():
         )
         return True
 
+    # @task
+    # def upsert_delta(cid: str, success_before: bool):
+    #     if success_before:
+    #         newstep = client.add_job_flow_steps(
+    #             JobFlowId=cid,
+    #             Steps=[{
+    #                 'Name': 'Upsert da tabela Delta',
+    #                 'ActionOnFailure': "TERMINATE_CLUSTER",
+    #                 'HadoopJarStep': {
+    #                     'Jar': 'command-runner.jar',
+    #                     'Args': ['spark-submit',
+    #                              '--packages', 'io.delta:delta-core_2.12:1.0.0',
+    #                              '--conf', 'spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension',
+    #                              '--conf', 'spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog',
+    #                              '--master', 'yarn',
+    #                              '--deploy-mode', 'cluster',
+    #                              's3://datalake-eric-igti-edc-tf/emr-code/pyspark/02_delta_spark_upsert.py'
+    #                              ]
+    #                 }
+    #             }]
+    #         )
+    #         return newstep['StepIds'][0]
+
+    # @task
+    # def wait_upsert_delta(cid: str, stepId: str):
+    #     waiter = client.get_waiter('step_complete')
+
+    #     waiter.wait(
+    #         ClusterId=cid,
+    #         StepId=stepId,
+    #         WaiterConfig={
+    #             'Delay': 30,
+    #             'MaxAttempts': 120
+    #         }
+    #     )
+    #     return True
+
     @task
     def terminate_emr_cluster(success_before: str, cid: str):
         if success_before:
@@ -150,10 +179,12 @@ def pipeline_rais():
                 JobFlowIds=[cid]
             )
 
-
-    # Encadeando a pipeline rais
+    # Encadeando a pipeline
     cluid = emr_process_rais_data()
     res_emr = wait_emr_step(cluid)
+    #newstep = upsert_delta(cluid, res_emr)
+    #res_ba = wait_upsert_delta(cluid, newstep)
+    #res_ter = terminate_emr_cluster(res_ba, cluid)
     res_ter = terminate_emr_cluster(res_emr, cluid)
 
 

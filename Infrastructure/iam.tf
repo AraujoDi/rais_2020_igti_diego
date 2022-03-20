@@ -1,88 +1,9 @@
-resource "aws_iam_role" "lambda" {
-  name = "IGTILambdaRole"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "lambda.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": "AssumeRole"
-    }
-  ]
-}
-EOF
-
-  tags = {
-    IES     = "IGTI"
-    CURSO   = "EDC"
-    PROJETO = "RAIS"
-  }
-
-}
-
-
-
-resource "aws_iam_policy" "lambda" {
-  name        = "IGTIAWSLambdaBasicExecutionRolePolicy"
-  path        = "/"
-  description = "Provides write permissions to CloudWatch Logs, S3 buckets and EMR Steps"
-
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:*"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "elasticmapreduce:*"
-            ],
-            "Resource": "*"
-        },
-        {
-          "Action": "iam:PassRole",
-          "Resource": ["arn:aws:iam::127012818163:role/EMR_DefaultRole",
-                       "arn:aws:iam::127012818163:role/EMR_EC2_DefaultRole"],
-          "Effect": "Allow"
-        }
-    ]
-}
-EOF
-}
-
-
-resource "aws_iam_role_policy_attachment" "lambda_attach" {
-  role       = aws_iam_role.lambda.name
-  policy_arn = aws_iam_policy.lambda.arn
-}
-
-
 ###############
 ## GLUE ROLE ##
 ###############
 
-resource "aws_iam_role" "glue_role" {
-  name = "IGTIGlueCrawlerRole"
+resource "aws_iam_role" "glue_rais_role" {
+  name = "RaisGlueCrawlerRole"
 
   assume_role_policy = <<EOF
 {
@@ -101,16 +22,15 @@ resource "aws_iam_role" "glue_role" {
 EOF
 
   tags = {
-    IES     = "IGTI"
-    CURSO   = "EDC"
+    IES   = "IGTI",
+    CURSO = "EDC",
     PROJETO = "RAIS"
   }
 
 }
 
-
-resource "aws_iam_policy" "glue_policy" {
-  name        = "IGTIAWSGlueServiceRole"
+resource "aws_iam_policy" "glue_rais_policy" {
+  name        = "RaisAWSGlueServiceRole"
   path        = "/"
   description = "Policy for AWS Glue service role which allows access to related services including EC2, S3, and Cloudwatch Logs"
 
@@ -199,7 +119,88 @@ EOF
 }
 
 
-resource "aws_iam_role_policy_attachment" "glue_attach" {
-  role       = aws_iam_role.glue_role.name
-  policy_arn = aws_iam_policy.glue_policy.arn
+resource "aws_iam_role_policy_attachment" "glue_rais_attach" {
+  role       = aws_iam_role.glue_rais_role.name
+  policy_arn = aws_iam_policy.glue_rais_policy.arn
+}
+
+###############
+## LAMBDA ROLE ##
+###############
+
+resource "aws_iam_role" "lambda" {
+  name = "RaisLambdaRole"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "lambda.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": "AssumeRole"
+    }
+  ]
+}
+EOF
+
+  tags = {
+    IES   = "IGTI",
+    CURSO = "EDC",
+    PROJETO = "RAIS"
+  }
+
+}
+
+
+resource "aws_iam_policy" "lambda" {
+  name        = "RaisAWSLambdaBasicExecutionRolePolicy"
+  path        = "/"
+  description = "Provides write permissions to CloudWatch Logs, S3 buckets and EMR Steps"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "elasticmapreduce:*"
+            ],
+            "Resource": "*"
+        },
+        {
+          "Action": "iam:PassRole",
+          "Resource": ["arn:aws:iam::530623260384:role/EMR_DefaultRole",
+                       "arn:aws:iam::530623260384:role/EMR_EC2_DefaultRole"],
+          "Effect": "Allow"
+        }
+    ]
+}
+EOF
+}
+
+
+resource "aws_iam_role_policy_attachment" "lambda_attach" {
+  role       = aws_iam_role.lambda.name
+  policy_arn = aws_iam_policy.lambda.arn
 }

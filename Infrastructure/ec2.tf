@@ -27,9 +27,8 @@ resource "aws_instance" "airflow" {
 
 
   tags = {
-    IES     = "IGTI"
-    CURSO   = "EDC"
-    PROJETO = "RAIS"
+    IES   = "IGTI",
+    CURSO = "EDC"
   }
 }
 
@@ -75,8 +74,8 @@ resource "aws_security_group" "airflow_sg" {
   }
 
   tags = {
-    IES     = "IGTI"
-    CURSO   = "EDC"
+    IES   = "IGTI",
+    CURSO = "EDC",
     PROJETO = "RAIS"
   }
 }

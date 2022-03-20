@@ -1,22 +1,18 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, min, max
 from pyspark.sql import functions as f
+from pyspark.sql import SparkSession
 
-# Cria objeto da Spark Session
-spark = (SparkSession.builder.appName("DeltaExercise")
-    .config("spark.jars.packages", "io.delta:delta-core_2.12:1.0.0")
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+spark = (
+    SparkSession.builder.appName("ExerciseSparkRais")
     .getOrCreate()
 )
 
-# Leitura de dados rais
+# Ler os dados da RAIS 2020
 rais = (
     spark.read
-    .csv("s3://dtlk-diego-igti-rais-tf/raw", inferSchema=True, header=True, sep=';', encoding="latin1")
+    .csv("s3://dtlk-diego-igti-rais-tf/raw/", inferSchema=True, header=True, sep=';', encoding="latin1")
 )
 
-# Renomeando colunas
+# Corrige nome das colunas
 rais = (
     rais
     .withColumnRenamed('Bairros SP', 'bairros_sp')
@@ -81,12 +77,11 @@ rais = (
     .withColumnRenamed('Ind Trab Parcial', 'ind_trab_parcial')
 )
 
-#Construindo variável UF
-rais.withColumn("uf", 
-f.col("municipio").cast('string').substr(1,2).cast('int'))
+# Construindo a variável de UF
+rais = rais.withColumn("uf", f.col("municipio").cast(
+    'string').substr(1, 2).cast('int'))
 
-
-# Corrigindo variáveis numéricas
+# Corrigindo tipos das variáveis de renda e mês de desligamento
 rais = (
     rais
     .withColumn("mes_desligamento", f.col('mes_desligamento').cast('int'))
@@ -107,14 +102,13 @@ rais = (
     .withColumn("vl_rem_novembro_sc", f.regexp_replace("vl_rem_novembro_sc", ',', '.').cast('double'))
 )
 
-
-# Escreve a tabela em staging em formato delta
-print("Writing delta table...")
+# Converte para parquet
 (
     rais
     .coalesce(50)
-    .write.mode('overwrite')
-    .partitionBy('ano', 'uf')
-    .format('parquet')
-    .save('s3://dtlk-diego-igti-rais-tf/staging/rais')
+    .write
+    .mode("overwrite")
+    # .partitionBy('ano', 'uf')
+    .format("parquet")
+    .save("s3://dtlk-diego-igti-rais-tf/staging-zone/")
 )
