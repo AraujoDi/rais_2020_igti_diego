@@ -25,7 +25,7 @@ default_args = {
 }
 
 @dag(default_args=default_args, schedule_interval=None, catchup=False, tags=["emr", "aws", "enem"], description="Pipeline para processamento de dados rais 2020")
-def pipeline_enem():
+def pipeline_rais():
     """
     Pipeline para processamento de dados do rais 2020.
     """
@@ -120,7 +120,7 @@ def pipeline_enem():
                             's3://dtlk-diego-igti-rais-tf/emr-code/pyspark/01_parquet_spark_insert.py'
                         ]
                 }
-            }],
+            }]
         )
         return cluster_id["JobFlowId"]
 
@@ -157,4 +157,4 @@ def pipeline_enem():
     res_ter = terminate_emr_cluster(res_emr, cluid)
 
 
-execucao = pipeline_enem()
+execucao = pipeline_rais()
